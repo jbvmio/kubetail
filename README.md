@@ -31,5 +31,5 @@ All pods that contain the search terms as a substring will be returned.
   -w, --white-list strings   only display lines matching the specified text. Use a comma seperated string for multiple args.
 ```
 
-This was written for functionality and troubleshooting purposes, testing out the [channelrouter](https://github.com/jbvmio/channelwriter) package and mostly for fun.
+This was written for functionality and troubleshooting purposes, testing out the [channelrouter](https://github.com/jbvmio/channelrouter) package and mostly for fun.
 
