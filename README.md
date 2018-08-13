@@ -3,8 +3,9 @@
 **v0.7 Released**
 https://github.com/jbvmio/kubetail/releases
 
-Tail logs from multiple Kubernetes Pods Simultaneously. Searches and returns results using podnames as a wildcard search.
-All matches that contain the podname string will be returned.
+kubetail is a utility written in go enabling a straight forward way to immediately begin tailing logs from multiple Kubernetes pods using whitelist, blacklist terms if desired. Searches and returns results using podnames as a wildcard search, optionally adding a prefixed header.
+
+All pods that contain the search terms as a substring will be returned.
 
 **Examples:**
 ```
@@ -29,3 +30,6 @@ All matches that contain the podname string will be returned.
   -t, --tail-lines int       start tail with defined no. of lines. (default 10)
   -w, --white-list strings   only display lines matching the specified text. Use a comma seperated string for multiple args.
 ```
+
+This was written for functionality and troubleshooting purposes, testing out the [channelrouter](https://github.com/jbvmio/channelwriter) package and mostly for fun.
+
