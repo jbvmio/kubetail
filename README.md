@@ -1,5 +1,8 @@
 # kubetail
 
+**v0.7 Released**
+https://github.com/jbvmio/kubetail/releases
+
 Tail logs from multiple Kubernetes Pods Simultaneously. Searches and returns results using podnames as a wildcard search.
 All matches that contain the podname string will be returned.
 
