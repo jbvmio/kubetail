@@ -37,12 +37,14 @@ var (
 	ic       bool
 	id       bool
 	match    bool
+	mainStop bool
 	tl       int64
 	ss       int64
 	white    []string
 	black    []string
+	wCount   uint32
+	bCount   uint32
 	wg       sync.WaitGroup
-	mainStop bool
 
 	print = true
 )
@@ -168,15 +170,19 @@ Output is followed until stopped with Ctrl-C or timeout occurs.`,
 							if matchWhite(s, white) {
 								print = true
 								whiteMatched = true
+								wCount++
 							}
 						}
 						if len(black) > 0 {
 							if matchBlack(s, black) {
 								print = false
+								bCount++
 							} else {
 								print = true
-								if !whiteMatched {
-									print = false
+								if len(white) > 0 {
+									if !whiteMatched {
+										print = false
+									}
 								}
 							}
 						}
@@ -197,6 +203,9 @@ Output is followed until stopped with Ctrl-C or timeout occurs.`,
 			}
 		}
 		fmt.Println("kubetail stopped.")
+		if match {
+			fmt.Println("Blacklist Matches:", bCount, "Whitelist Matches:", wCount)
+		}
 	},
 }
 
