@@ -34,17 +34,18 @@ import (
 
 //var cfgFile string
 var (
-	ic       bool
-	id       bool
-	match    bool
-	mainStop bool
-	tl       int64
-	ss       int64
-	white    []string
-	black    []string
-	wCount   uint32
-	bCount   uint32
-	wg       sync.WaitGroup
+	ic         bool
+	id         bool
+	match      bool
+	mainStop   bool
+	tl         int64
+	ss         int64
+	white      []string
+	black      []string
+	wCount     uint32
+	bCount     uint32
+	totalCount uint32
+	wg         sync.WaitGroup
 
 	print = true
 )
@@ -192,6 +193,7 @@ Output is followed until stopped with Ctrl-C or timeout occurs.`,
 					} else {
 						fmt.Printf(s)
 					}
+					totalCount++
 					n = 0
 				} else {
 					time.Sleep(time.Millisecond * 100)
@@ -202,7 +204,7 @@ Output is followed until stopped with Ctrl-C or timeout occurs.`,
 				}
 			}
 		}
-		fmt.Println("kubetail stopped.")
+		fmt.Println("kubetail stopped - Total:", totalCount)
 		if match {
 			fmt.Println("Blacklist Matches:", bCount, "Whitelist Matches:", wCount)
 		}
