@@ -19,7 +19,10 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"os/signal"
 	"strings"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -31,13 +34,17 @@ import (
 
 //var cfgFile string
 var (
-	ic    bool
-	id    bool
-	match bool
-	tl    int64
-	ss    int64
-	white []string
-	black []string
+	ic       bool
+	id       bool
+	match    bool
+	tl       int64
+	ss       int64
+	white    []string
+	black    []string
+	wg       sync.WaitGroup
+	mainStop bool
+
+	print = true
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -60,6 +67,8 @@ Using white-list and black-list filters:
   This will tail logs from any pod with "apache" or "nginx" in it's name, filtering for anything containing
   either example.com or mysite.com but not containing the word POST.
 
+  * Blacklist overrides Whitelist.
+
 Output is followed until stopped with Ctrl-C or timeout occurs.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
@@ -70,7 +79,7 @@ Output is followed until stopped with Ctrl-C or timeout occurs.`,
 			cmd.Help()
 			os.Exit(1)
 		}
-		str = args[0:]
+		str = args[:]
 		if len(black) > 0 || len(white) > 0 {
 			fmt.Printf("Filters > Blacklist:%v  Whitelist:%v\n", len(black), len(white))
 			match = true
@@ -103,14 +112,17 @@ Output is followed until stopped with Ctrl-C or timeout occurs.`,
 			}
 		}
 		var err error
-		cr := channelrouter.NewChannelRouter(4096)
+
+		sigChan := make(chan os.Signal, 1)
+		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+		cr := channelrouter.NewChannelRouter(40960)
 		//cr.Logger = log.New(os.Stdout, "[channelRouter] ", log.LstdFlags)
-		//stringChan := cr.AddChannel(4096)
+		stringChan := cr.AddChannel(4096)
 		cr.Route()
 
 		var pods []pod
 		for _, t := range targets {
-			p := cr.AddChannel(4096)
+			p := cr.AddChannel(40960)
 			writer := cr.MakeIoChannel(p)
 			pd := pod{
 				key:  p,
@@ -124,23 +136,62 @@ Output is followed until stopped with Ctrl-C or timeout occurs.`,
 			if err != nil {
 				log.Fatalf("Error creating PodLogStreamer: %v\n", err)
 			}
+			wg.Add(1)
 			go getPodLogs(writer, ps.ReadCloser)
 		}
-
 		for _, pd := range pods {
-			go tailPodLogs(pd)
+			wg.Add(1)
+			go tailPodLogs(pd, stringChan, sigChan)
+		}
+		for i := 0; i < len(pods); i++ {
+			wg.Done()
+			wg.Done()
 		}
 		var n int
-		for _, p := range pods {
-			if cr.Available(p.key) > 0 {
-				n++
-			}
-			if n >= len(pods)*100 {
+		for {
+			if mainStop {
 				break
-			} else {
-				time.Sleep(time.Second * 300)
+			}
+			select {
+			case sig := <-sigChan:
+				fmt.Printf("Caught signal %v: terminating\n", sig)
+				mainStop = true
+				break
+			default:
+				if cr.Available(stringChan) > 0 {
+					str := cr.Receive(stringChan)
+					s := str.ToString()
+					if match {
+						print = false
+						if len(white) > 0 {
+							if matchWhite(s, white) {
+								print = true
+							}
+						}
+						if len(black) > 0 {
+							if matchBlack(s, black) {
+								print = false
+							} else {
+								print = true
+							}
+						}
+						if print {
+							fmt.Printf(s)
+						}
+					} else {
+						fmt.Printf(s)
+					}
+					n = 0
+				} else {
+					time.Sleep(time.Millisecond * 100)
+					n++
+				}
+				if n >= len(pods)*100 {
+					break
+				}
 			}
 		}
+		fmt.Println("kubetail stopped.")
 	},
 }
 
