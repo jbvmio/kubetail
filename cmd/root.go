@@ -163,9 +163,11 @@ Output is followed until stopped with Ctrl-C or timeout occurs.`,
 					s := str.ToString()
 					if match {
 						print = false
+						var whiteMatched bool
 						if len(white) > 0 {
 							if matchWhite(s, white) {
 								print = true
+								whiteMatched = true
 							}
 						}
 						if len(black) > 0 {
@@ -173,6 +175,9 @@ Output is followed until stopped with Ctrl-C or timeout occurs.`,
 								print = false
 							} else {
 								print = true
+								if !whiteMatched {
+									print = false
+								}
 							}
 						}
 						if print {
