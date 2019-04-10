@@ -1,6 +1,0 @@
-package: github.com/jbvmio/kubetail # e.g. github.com/foo/bar
-import:
-- package: k8s.io/client-go
-  version: v6.0.0
-#- package: gitub.com/sp13/pflag
-#  version: 35f8082b75acb5a52bb37d6e34aa2f95d60440a1
