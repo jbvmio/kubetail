@@ -66,7 +66,8 @@ func (p *PodLogger) StartStream() {
 	fmt.Println(p.pod.Name, "Starting Stream")
 	stream, err := p.req.Stream()
 	if err != nil {
-		log.Fatalf("Error obtaining log stream: %v\n", err)
+		fmt.Printf("Error obtaining log stream: %v\n", err)
+		return
 	}
 	podLogs := logWatch{
 		pod:    p.pod.Name,
