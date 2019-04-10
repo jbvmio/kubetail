@@ -1,6 +1,6 @@
 # kubetail
 
-**v0.7 Released**
+**v1.0.0 Released**
 https://github.com/jbvmio/kubetail/releases
 
 kubetail is a utility written in go enabling a straight forward way to immediately begin tailing logs from multiple Kubernetes pods using whitelist, blacklist terms if desired. Searches and returns results using podnames as a wildcard search, optionally adding a prefixed header.
